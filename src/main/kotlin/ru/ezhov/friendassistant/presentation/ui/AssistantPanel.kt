@@ -1,6 +1,7 @@
 package ru.ezhov.friendassistant.presentation.ui
 
 import mu.KotlinLogging
+import ru.ezhov.friendassistant.command.CommandRepository
 import ru.ezhov.friendassistant.event.Event
 import ru.ezhov.friendassistant.event.EventListener
 import ru.ezhov.friendassistant.event.ObserverFactory
@@ -17,13 +18,16 @@ import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JDialog
 import javax.swing.JLabel
+import javax.swing.JMenu
+import javax.swing.JMenuBar
+import javax.swing.JMenuItem
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 
 private val logger = KotlinLogging.logger {}
 
-class AssistantPanel(name: String) : JPanel() {
+class AssistantPanel(name: String, commandRepository: CommandRepository) : JPanel() {
     private val labelIcon = JLabel().apply {
         icon = ImageIcon(this@AssistantPanel.javaClass.getResource("/icons8-microphone-32.png"))
         horizontalAlignment = SwingConstants.CENTER
@@ -35,8 +39,22 @@ class AssistantPanel(name: String) : JPanel() {
     init {
         layout = BorderLayout()
         border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        add(
+            JMenuBar().apply {
+                add(JMenu("...").also { menu ->
+                    commandRepository.all().sortedBy { it.name() }.forEach { command ->
+                        menu.add(JMenu(command.name()).also { menuCommand ->
+                            menuCommand.add(JMenuItem(command.description()))
+                        })
+                    }
+                }
+                )
+            },
+            BorderLayout.NORTH
+        )
         add(labelIcon, BorderLayout.CENTER)
-        add(labelName, BorderLayout.SOUTH)
+        add(labelName, BorderLayout.SOUTH
+        )
 
         val dialogQueue: ConcurrentLinkedDeque<JDialog> = ConcurrentLinkedDeque()
         ObserverFactory.observer.register(
@@ -55,6 +73,7 @@ class AssistantPanel(name: String) : JPanel() {
                                 labelIcon.background = Color.GREEN
                             }
                         }
+
                         is SayNameEvent -> {
                             logger.debug { "catch event ${SayNameEvent::class.simpleName}" }
 
@@ -62,6 +81,7 @@ class AssistantPanel(name: String) : JPanel() {
                                 labelIcon.background = Color.GREEN
                             }
                         }
+
                         is StopSayNameEvent -> {
                             logger.debug { "catch event ${StopSayNameEvent::class.simpleName}" }
 
