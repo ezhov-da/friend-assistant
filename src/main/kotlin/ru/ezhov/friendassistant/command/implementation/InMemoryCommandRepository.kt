@@ -13,5 +13,6 @@ class InMemoryCommandRepository : CommandRepository {
             JiraTaskCommand(),
             SearchCommand(),
             ShowErrorsCommand(),
+            MailActionCommand(),
         )
 }
