@@ -14,5 +14,6 @@ class InMemoryCommandRepository : CommandRepository {
             SearchCommand(),
             ShowErrorsCommand(),
             MailActionCommand(),
+            CleanTextFromBufferCommand(),
         )
 }
