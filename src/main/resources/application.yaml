@@ -1,0 +1,15 @@
+spring:
+    application:
+        name: friend-assistant
+logging:
+    level:
+        root: INFO
+        ru:
+            ezhov:
+                friendassistant: DEBUG
+
+friend:
+    name: "Мира"
+client:
+    host: "http://192.168.0.127:7171"
+    token: "35591093-07ce-47f9-b22c-5cbf91c9b6e2"

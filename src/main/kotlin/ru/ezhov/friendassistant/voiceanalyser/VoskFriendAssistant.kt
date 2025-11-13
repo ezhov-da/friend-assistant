@@ -6,11 +6,12 @@ import org.vosk.LibVosk
 import org.vosk.LogLevel
 import org.vosk.Model
 import org.vosk.Recognizer
-import ru.ezhov.friendassistant.command.CommandDispatcher
 import ru.ezhov.friendassistant.event.ObserverFactory
 import ru.ezhov.friendassistant.event.SayNameEvent
 import ru.ezhov.friendassistant.event.SayTextEvent
 import ru.ezhov.friendassistant.event.StopSayNameEvent
+import ru.ezhov.friendassistant.service.CommandService
+import ru.ezhov.friendassistant.service.PlayAudioService
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.DataLine
@@ -19,12 +20,12 @@ import javax.sound.sampled.TargetDataLine
 private val logger = KotlinLogging.logger {}
 private const val PROPERTY_PATH_FILE = "vosk.model.folder.path"
 
-class VoskFriendAssistant(friendName: String, private val commandDispatcher: CommandDispatcher) : FriendAssistant {
-    private val friendName: String
-
-    init {
-        this.friendName = friendName.lowercase()
-    }
+class VoskFriendAssistant(
+    friendName: String,
+    private val commandService: CommandService,
+    private val playAudioService: PlayAudioService,
+) : FriendAssistant {
+    private val friendName: String = friendName.lowercase()
 
     override fun start() {
         LibVosk.setLogLevel(LogLevel.DEBUG)
@@ -67,6 +68,8 @@ class VoskFriendAssistant(friendName: String, private val commandDispatcher: Com
                             logger.debug { "text='$lastValue'" }
                         }
                         if (lastValue.startsWith(friendName)) {
+                            playAudioService.playCatchAudio()
+
                             logger.debug { "catch name '$friendName'" }
 
                             ObserverFactory.observer.fire(SayNameEvent())
@@ -75,7 +78,7 @@ class VoskFriendAssistant(friendName: String, private val commandDispatcher: Com
                             ObserverFactory.observer.fire(SayTextEvent(lastValue))
                             logger.debug { "fire event 'say text'" }
 
-                            commandDispatcher.doCommand(lastValue.substringAfter(" "))
+                            commandService.doCommand(lastValue.substringAfter(" "))
 
                             ObserverFactory.observer.fire(StopSayNameEvent())
                         }

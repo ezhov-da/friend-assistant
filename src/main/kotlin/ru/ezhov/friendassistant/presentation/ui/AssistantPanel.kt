@@ -1,7 +1,6 @@
 package ru.ezhov.friendassistant.presentation.ui
 
 import mu.KotlinLogging
-import ru.ezhov.friendassistant.command.CommandRepository
 import ru.ezhov.friendassistant.event.Event
 import ru.ezhov.friendassistant.event.EventListener
 import ru.ezhov.friendassistant.event.ObserverFactory
@@ -11,23 +10,22 @@ import ru.ezhov.friendassistant.event.StopSayNameEvent
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Point
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedDeque
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JDialog
 import javax.swing.JLabel
-import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
+import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger {}
 
-class AssistantPanel(name: String, commandRepository: CommandRepository) : JPanel() {
+class AssistantPanel(name: String) : JPanel() {
     private val labelIcon = JLabel().apply {
         icon = ImageIcon(this@AssistantPanel.javaClass.getResource("/icons8-microphone-32.png"))
         horizontalAlignment = SwingConstants.CENTER
@@ -41,20 +39,16 @@ class AssistantPanel(name: String, commandRepository: CommandRepository) : JPane
         border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
         add(
             JMenuBar().apply {
-                add(JMenu("...").also { menu ->
-                    commandRepository.all().sortedBy { it.name() }.forEach { command ->
-                        menu.add(JMenu(command.name()).also { menuCommand ->
-                            menuCommand.add(JMenuItem(command.description()))
-                        })
+                add(JMenuItem("Exit").apply {
+                    addActionListener {
+                        exitProcess(0)
                     }
-                }
-                )
+                })
             },
             BorderLayout.NORTH
         )
         add(labelIcon, BorderLayout.CENTER)
-        add(labelName, BorderLayout.SOUTH
-        )
+        add(labelName, BorderLayout.SOUTH)
 
         val dialogQueue: ConcurrentLinkedDeque<JDialog> = ConcurrentLinkedDeque()
         ObserverFactory.observer.register(
@@ -91,9 +85,7 @@ class AssistantPanel(name: String, commandRepository: CommandRepository) : JPane
                                         override fun run() {
                                             SwingUtilities.invokeLater {
                                                 labelIcon.background = defaultBackgroundColor
-                                                dialogQueue.pollFirst()?.let {
-                                                    it.dispose()
-                                                }
+                                                dialogQueue.pollFirst()?.dispose()
                                             }
                                         }
                                     },

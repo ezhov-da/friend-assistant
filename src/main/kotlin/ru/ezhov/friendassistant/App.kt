@@ -1,27 +1,49 @@
 package ru.ezhov.friendassistant
 
-import ru.ezhov.friendassistant.command.CommandDispatcher
-import ru.ezhov.friendassistant.command.implementation.InMemoryCommandRepository
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.stereotype.Component
 import ru.ezhov.friendassistant.presentation.ui.AssistantFrame
+import ru.ezhov.friendassistant.service.CommandService
+import ru.ezhov.friendassistant.service.PlayAudioService
 import ru.ezhov.friendassistant.voiceanalyser.FriendAssistant
 import ru.ezhov.friendassistant.voiceanalyser.VoskFriendAssistant
 import javax.swing.SwingUtilities
 
-fun main() {
-    val friendName = "Джарвис"
-    val commandRepository = InMemoryCommandRepository()
-    val commandDispatcher = CommandDispatcher(commandRepository)
-    val friendAssistant: FriendAssistant = VoskFriendAssistant(
-        friendName = friendName,
-        commandDispatcher = commandDispatcher
-    )
 
-    Thread { friendAssistant.start() }.apply {
-        isDaemon = true
-        start()
-    }
+@SpringBootApplication
+class App
 
-    SwingUtilities.invokeLater {
-        AssistantFrame(name = friendName, commandRepository = commandRepository).isVisible = true
+fun main(args: Array<String>) {
+//    runApplication<App>(*args)
+    val builder = SpringApplicationBuilder(App::class.java)
+    builder.headless(false)
+    builder.run(*args)
+}
+
+@Component
+class Main(
+    @Value("\${friend.name}")
+    private val friendName: String,
+    private val commandService: CommandService,
+) : CommandLineRunner {
+    override fun run(vararg args: String?) {
+        val playAudioService = PlayAudioService()
+        val friendAssistant: FriendAssistant = VoskFriendAssistant(
+            friendName = friendName,
+            commandService = commandService,
+            playAudioService = playAudioService,
+        )
+
+        Thread { friendAssistant.start() }.apply {
+            isDaemon = true
+            start()
+        }
+
+        SwingUtilities.invokeLater {
+            AssistantFrame(name = friendName).isVisible = true
+        }
     }
 }
