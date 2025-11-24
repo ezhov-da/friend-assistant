@@ -22,19 +22,17 @@ class CommandService(
     private val executor = Executors.newFixedThreadPool(4)
 
     fun doCommand(text: String) {
-        executor.submit {
+        executor.execute {
             try {
                 HttpClients.createDefault().use { client ->
                     val httpPost = HttpPost("$clientHost/api/talk")
                     httpPost.addHeader(BasicHeader("Authorization", "Bearer $clientToken"))
-
-                    val body = mapOf("text" to text)
-
-                    val json = ObjectMapper().writeValueAsString(body)
-
-                    httpPost.entity = StringEntity(json, Charsets.UTF_8)
                     httpPost.addHeader("Accept", "application/json;charset=UTF-8")
                     httpPost.addHeader("Content-Type", "application/json;charset=UTF-8")
+
+                    val body = mapOf("text" to text)
+                    val json = ObjectMapper().writeValueAsString(body)
+                    httpPost.entity = StringEntity(json, Charsets.UTF_8)
                     client.execute(httpPost).use { response ->
                         logger.debug {
                             "url='${httpPost.uri}' " +

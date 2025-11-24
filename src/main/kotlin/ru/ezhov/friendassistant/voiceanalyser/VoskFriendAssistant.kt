@@ -68,8 +68,6 @@ class VoskFriendAssistant(
                             logger.debug { "text='$lastValue'" }
                         }
                         if (lastValue.startsWith(friendName)) {
-                            playAudioService.playCatchAudio()
-
                             logger.debug { "catch name '$friendName'" }
 
                             ObserverFactory.observer.fire(SayNameEvent())

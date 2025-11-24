@@ -7,6 +7,7 @@ import ru.ezhov.friendassistant.event.ObserverFactory
 import ru.ezhov.friendassistant.event.SayNameEvent
 import ru.ezhov.friendassistant.event.SayTextEvent
 import ru.ezhov.friendassistant.event.StopSayNameEvent
+import ru.ezhov.friendassistant.service.PlayAudioService
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Point
@@ -25,7 +26,10 @@ import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger {}
 
-class AssistantPanel(name: String) : JPanel() {
+class AssistantPanel(
+    name: String,
+    private val playAudioService: PlayAudioService,
+) : JPanel() {
     private val labelIcon = JLabel().apply {
         icon = ImageIcon(this@AssistantPanel.javaClass.getResource("/icons8-microphone-32.png"))
         horizontalAlignment = SwingConstants.CENTER
@@ -72,6 +76,7 @@ class AssistantPanel(name: String) : JPanel() {
                             logger.debug { "catch event ${SayNameEvent::class.simpleName}" }
 
                             SwingUtilities.invokeLater {
+                                playAudioService.playCatchAudio()
                                 labelIcon.background = Color.GREEN
                             }
                         }

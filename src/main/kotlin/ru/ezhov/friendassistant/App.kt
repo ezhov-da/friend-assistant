@@ -43,7 +43,10 @@ class Main(
         }
 
         SwingUtilities.invokeLater {
-            AssistantFrame(name = friendName).isVisible = true
+            AssistantFrame(
+                name = friendName,
+                playAudioService = playAudioService
+            ).isVisible = true
         }
     }
 }
